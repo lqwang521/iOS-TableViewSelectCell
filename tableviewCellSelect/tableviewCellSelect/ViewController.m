@@ -33,7 +33,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
+    
     self.deleteArr = [NSMutableArray array];
     self.markArr = [NSMutableArray array];
     
@@ -75,19 +75,19 @@
     [_baseView addSubview:_deleteBtn];
     
 }
-    //删除按钮点击事件
+//删除按钮点击事件
 - (void)deleteClick:(UIButton *) button {
     
     if (self.tableView.editing) {
-    //删除
-         [self.dataArray removeObjectsInArray:self.deleteArr];
-         [self.tableView reloadData];
-
+        //删除
+        [self.dataArray removeObjectsInArray:self.deleteArr];
+        [self.tableView reloadData];
+        
     }
     else return;
 }
 
-    //选择按钮点击响应事件
+//选择按钮点击响应事件
 - (void)selectedBtn:(UIButton *)button {
     
     _deleteBtn.enabled = YES;
@@ -97,18 +97,18 @@
     if (self.tableView.editing) {
         _selectAllBtn.hidden = NO;
         [button setTitle:@"完成" forState:UIControlStateNormal];
-            
+        
     }else{
         _selectAllBtn.hidden = YES;
         [button setTitle:@"选择" forState:UIControlStateNormal];
     }
     
 }
-    //全选
+//全选
 - (void)selectAllBtnClick:(UIButton *)button {
-
+    
     for (int i = 0; i < self.dataArray.count; i ++) {
-
+        
         NSIndexPath *indexPath = [NSIndexPath indexPathForItem:i inSection:0];
         [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionTop];
         [self.deleteArr addObjectsFromArray:self.dataArray];
@@ -124,9 +124,9 @@
 //选择编辑的方式,按照选择的方式对表进行处理
 -(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-       
+        
     }
-
+    
 }
 
 //选择你要对表进行处理的方式  默认是删除方式
@@ -157,26 +157,36 @@
     if (!cell) {
         cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ident];
     }
+    
     cell.textLabel.text = [self.dataArray objectAtIndex:indexPath.row];
     
-//    //长按手势
-//    UILongPressGestureRecognizer *longPressed = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(longPressedAct:)];
-//    longPressed.minimumPressDuration = 1;
-//    [cell.contentView addGestureRecognizer:longPressed];
+    //长按手势
+    UILongPressGestureRecognizer *longPressed = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(longPressedAct:)];
+    
+    longPressed.minimumPressDuration = 1;
+    
+    [cell.contentView addGestureRecognizer:longPressed];
+    
     return cell;
 }
 
-/*
+
 -(void)longPressedAct:(UILongPressGestureRecognizer *)gesture
 {
+    //如果是编辑状态那么不执行任何操作
+    if (self.tableView.isEditing) {
+        return;
+    }
+    
     if(gesture.state == UIGestureRecognizerStateBegan) {
-            CGPoint point = [gesture locationInView:self.tableView];
-            NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
-            if(indexPath == nil) return ;
+        
+        CGPoint point = [gesture locationInView:self.tableView];
+        NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
+        if(indexPath == nil) return ;
         self.tableView.editing = YES;
-        }
+    }
 }
-*/
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
