@@ -13,10 +13,11 @@
 
 @property(nonatomic, strong) NSMutableArray *dataArray;
 @property(nonatomic, strong) UITableView *tableView;
+
 @property(nonatomic, strong) NSMutableArray *deleteArr;//删除数据的数组
-@property(nonatomic, strong) NSMutableArray *markArr;//标记数据的数组
-@property(nonatomic, strong) UIButton *selectAllBtn;//选择按钮
-@property(nonatomic, strong) UIView *baseView;//背景view
+@property(nonatomic, strong) UIButton *selectedAllBtn;//全选按钮
+@property(nonatomic, strong) UIButton *backOrCancelBtn;//返回按钮
+@property(nonatomic, strong) UIView *bottomView;//背景view
 @property(nonatomic, strong) UIButton *deleteBtn;//删除
 
 @end
@@ -35,86 +36,25 @@
     [super viewDidLoad];
     
     self.deleteArr = [NSMutableArray array];
-    self.markArr = [NSMutableArray array];
     
     self.title = @"首页";
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height-60) style:UITableViewStylePlain];
-    self.tableView.delegate = self;
-    self.tableView.dataSource = self;
+    
     [self.view addSubview:self.tableView];
-    self.tableView.editing = NO;
     
-    //选择按钮
-    UIButton *selectedBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    selectedBtn.frame = CGRectMake(0, 0, 60, 30);
-    [selectedBtn setTitle:@"选择" forState:UIControlStateNormal];
-    [selectedBtn addTarget:self action:@selector(selectedBtn:) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *selectItem = [[UIBarButtonItem alloc] initWithCustomView:selectedBtn];
-    self.navigationItem.rightBarButtonItem =selectItem;
+    UIBarButtonItem *selectItem = [[UIBarButtonItem alloc] initWithCustomView:self.selectedAllBtn];
+    self.navigationItem.rightBarButtonItem = selectItem;
     
-    //全选
-    _selectAllBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    _selectAllBtn.frame = CGRectMake(0, 0, 60, 30);
-    [_selectAllBtn setTitle:@"全选" forState:UIControlStateNormal];
-    [_selectAllBtn addTarget:self action:@selector(selectAllBtnClick:) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithCustomView:_selectAllBtn];
+    UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithCustomView:self.backOrCancelBtn];
     self.navigationItem.leftBarButtonItem = leftItem;
-    _selectAllBtn.hidden = YES;
     
-    _baseView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height- 60, self.view.frame.size.width, 60)];
-    _baseView.backgroundColor = [UIColor grayColor];
-    [self.view addSubview:_baseView];
     
-    //删除按钮
-    _deleteBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    _deleteBtn.backgroundColor = [UIColor redColor];
-    [_deleteBtn setTitle:@"删除" forState:UIControlStateNormal];
-    _deleteBtn.frame = CGRectMake(0, 0, self.view.frame.size.width, 60);
-    [_deleteBtn addTarget:self action:@selector(deleteClick:) forControlEvents:UIControlEventTouchUpInside];
-    _deleteBtn.enabled = NO;
-    [_baseView addSubview:_deleteBtn];
     
-}
-//删除按钮点击事件
-- (void)deleteClick:(UIButton *) button {
+    [self.view addSubview:self.bottomView];
     
-    if (self.tableView.editing) {
-        //删除
-        [self.dataArray removeObjectsInArray:self.deleteArr];
-        [self.tableView reloadData];
-        
-    }
-    else return;
+    
+    
 }
 
-//选择按钮点击响应事件
-- (void)selectedBtn:(UIButton *)button {
-    
-    _deleteBtn.enabled = YES;
-    //支持同时选中多行
-    self.tableView.allowsMultipleSelectionDuringEditing = YES;
-    self.tableView.editing = !self.tableView.editing;
-    if (self.tableView.editing) {
-        _selectAllBtn.hidden = NO;
-        [button setTitle:@"完成" forState:UIControlStateNormal];
-        
-    }else{
-        _selectAllBtn.hidden = YES;
-        [button setTitle:@"选择" forState:UIControlStateNormal];
-    }
-    
-}
-//全选
-- (void)selectAllBtnClick:(UIButton *)button {
-    
-    for (int i = 0; i < self.dataArray.count; i ++) {
-        
-        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:i inSection:0];
-        [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionTop];
-        [self.deleteArr addObjectsFromArray:self.dataArray];
-    }
-    NSLog(@"self.deleteArr:%@", self.deleteArr);
-}
 
 //是否可以编辑  默认的时YES
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath{
@@ -146,6 +86,7 @@
 }
 
 #pragma mark tableViewDataSource
+
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     
     return self.dataArray.count;
@@ -170,8 +111,7 @@
     return cell;
 }
 
-
--(void)longPressedAct:(UILongPressGestureRecognizer *)gesture
+- (void)longPressedAct:(UILongPressGestureRecognizer *)gesture
 {
     //如果是编辑状态那么不执行任何操作
     if (self.tableView.isEditing) {
@@ -184,13 +124,117 @@
         NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
         if(indexPath == nil) return ;
         self.tableView.editing = YES;
+        
+        self.selectedAllBtn.hidden = NO;
+        
+        [self.backOrCancelBtn setTitle:@"取消" forState:UIControlStateNormal];
+        
+        //支持同时选中多行
+        self.tableView.allowsMultipleSelectionDuringEditing = YES;
     }
 }
 
+//删除按钮点击事件
+- (void)deleteClick:(UIButton *) button {
+    
+    if (self.tableView.editing) {
+        //删除
+        [self.dataArray removeObjectsInArray:self.deleteArr];
+        [self.tableView reloadData];
+        
+        //执行相应的操作
+        
+    }
+    else return;
+}
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+//全选
+- (void)selectedAllBtn:(UIButton *)button {
+    if (self.tableView.isEditing) {
+        for (int i = 0; i < self.dataArray.count; i ++) {
+            
+            NSIndexPath *indexPath = [NSIndexPath indexPathForItem:i inSection:0];
+            [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionTop];
+            [self.deleteArr addObjectsFromArray:self.dataArray];
+        }
+    }
+}
+
+//取消
+- (void)backOrCancelBtnClick:(UIButton *)button{
+    
+    if (self.tableView.isEditing) {
+        
+        self.tableView.editing = NO;
+        
+        [self.deleteArr removeAllObjects];
+        
+        self.selectedAllBtn.hidden = YES;
+        
+        //设置底部的按钮隐藏
+        [((UIButton *)self.navigationItem.leftBarButtonItem.customView) setTitle:@"返回" forState:UIControlStateNormal];
+    }
+    else{
+        //返回处理
+    }
+}
+
+- (UIButton *)selectedAllBtn{
+    if (!_selectedAllBtn) {
+        //选择按钮
+        _selectedAllBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        _selectedAllBtn.frame = CGRectMake(0, 0, 44, 44);
+        [_selectedAllBtn setTitle:@"全选" forState:UIControlStateNormal];
+        [_selectedAllBtn addTarget:self action:@selector(selectedAllBtn:) forControlEvents:UIControlEventTouchUpInside];
+        _selectedAllBtn.hidden = YES;
+    }
+    return _selectedAllBtn;
+}
+
+- (UIButton *)backOrCancelBtn{
+    if (!_backOrCancelBtn) {
+        //取消或返回
+        _backOrCancelBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        _backOrCancelBtn.frame = CGRectMake(0, 0, 44, 44);
+        [_backOrCancelBtn setTitle:@"返回" forState:UIControlStateNormal];
+        [_backOrCancelBtn addTarget:self action:@selector(backOrCancelBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _backOrCancelBtn;
+}
+
+- (UITableView *)tableView{
+    if (!_tableView) {
+        _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 60) style:UITableViewStylePlain];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.editing = NO;
+    }
+    return _tableView;
+}
+
+- (UIView *)bottomView{
+    if (!_bottomView) {
+        _bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height- 60, self.view.frame.size.width, 60)];
+        _bottomView.backgroundColor = [UIColor grayColor];
+        
+        [_bottomView addSubview:self.deleteBtn];
+    }
+    return _bottomView;
+}
+
+- (UIButton *)deleteBtn{
+    
+    if (!_deleteBtn) {
+        //删除按钮
+        _deleteBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        _deleteBtn.backgroundColor = [UIColor redColor];
+        [_deleteBtn setTitle:@"删除" forState:UIControlStateNormal];
+        _deleteBtn.frame = CGRectMake(0, 0, self.view.frame.size.width, 60);
+        [_deleteBtn addTarget:self action:@selector(deleteClick:) forControlEvents:UIControlEventTouchUpInside];
+        _deleteBtn.enabled = NO;
+    }
+    
+    return _deleteBtn;
 }
 
 @end
